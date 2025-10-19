@@ -1,151 +1,60 @@
-import java.io.File;
+package org.example;
+
+import org.example.tsp.City;
+import org.example.tsp.GreedyTSPSolver;
+import org.example.tsp.Tour;
+
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
     private static final String FILE_NAME = "dane.txt";
 
     public static void main(String[] args) {
-        int[][] points = Generator();
+        PointGenerator generator = new PointGenerator();
+        DataFileHandler fileHandler = new DataFileHandler(FILE_NAME);
 
-        PrintWriter zapis = new PrintWriter(FILE_NAME);
-        zapis.println(points.length);
+        List<Point> points = generator.generate();
 
-        for (int i = 0; i < points.length; i++) {
-            zapis.println((i+1) + " " points[i][0] + " " + points[i][1]);`
-        }
-
-        zapis.close();
-        System.out.println("Zapisano dane do pliku dane.txt!");
-
-        int Readpoints = ReadData();
-        if (readPoints != null) {
-            int numberofPoints = readPoints.length;
-            System.out.println("\nOdczytano dane z pliku " + FILE_NAME + ":");
-            System.out.println("Liczba odczytanych punktów: " + numberofPoints);
-
-
-            for (int i = 0; i < numberofPoints; i++) {
-                System.out.println((i+1)+ " "+ readPoints[i][0] + " " + readPoints[i][1]);
-            }
-        }
-
-    }
-
-    public static int[][] Generator() {
-        Random rand = new Random();
-        int Number_of_Points = rand.nextInt(50) + 1;
-        int[][] points = new int[Number_of_Points][2];
-
-        for (int i = 0; i < Number_of_Points; i++) {
-            int x, y;
-            boolean exists;
-            do {
-                exists = false;
-                x = rand.nextInt(3000);
-                y = rand.nextInt(3000);
-
-                for (int j = 0; j < i; j++) {
-                    if (points[j][0] == x && points[j][1] == y) {
-                        exists = true;
-                        break;
-                    }
-                }
-            } while (exists);
-
-            points[i][0] = x;
-            points[i][1] = y;
-
-        }
-        return points;
-    }
-    public static int[][] ReadData() {
         try {
-            Scanner odczyt = new Scanner(new File(FILE_NAME));
-
-            if (!odczyt.hasNextInt()) {
-                System.err.println("Błąd odczytu: Plik nie zawiera liczby punktów w pierwszej linii.");
-                odczyt.close();
-                return null;
-            }
-
-            // Odczyt  Liczby punktów (N)
-            int numberOfPoints = odczyt.nextInt();
-            odczyt.nextLine();
-
-            int[][] points = new int[numberOfPoints][2];
-
-            // Odczyt kolejnych N punktów
-            for (int i = 0; i < numberOfPoints; i++) {
-
-                if (odczyt.hasNextInt()) {
-                    odczyt.nextInt(); // Ignoruj (i+1) z pliku
-                }else{
-                    System.err.println("Błąd odczytu: Brak indeksu punktu" + (i + 1));
-                    odczyt.close();
-                    return null;
-                }
-
-                if (odczyt.hasNextInt()) {
-                    points[i][0] = odczyt.nextInt();
-                } else {
-                    System.err.println("Błąd odczytu: Brak danych dla współrzędnej X punktu " + (i+1));
-                    odczyt.close();
-                    return null;
-                }
-
-                if (odczyt.hasNextInt()) {
-                    points[i][1] = odczyt.nextInt();
-                } else {
-                    System.err.println("Błąd odczytu: Brak danych dla współrzędnej Y punktu " + (i+1));
-                    odczyt.close();
-                    return null;
-                }
-            }
-
-            odczyt.close();
-            return points;
-
+            fileHandler.writePoints(points);
         } catch (FileNotFoundException e) {
-            System.err.println("Błąd odczytu: Nie znaleziono pliku " + FILE_NAME);
-            return null;
+            System.err.println("Błąd zapisu: Nie można utworzyć pliku " + FILE_NAME);
+            return;
         }
 
-        System.out.println("=== TSP Greedy Algorithm ===\n");
+        List<Point> readPoints = fileHandler.readPoints();
+        if (readPoints != null) {
+            int numberOfPoints = readPoints.size();
+            System.out.println("\nOdczytano dane z pliku " + FILE_NAME + ":");
+            System.out.println("Liczba odczytanych punktów: " + numberOfPoints);
 
-        System.out.println("Example 1: Square");
-        List<City> square = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 10, 0),
-            new City("C", 10, 10),
-            new City("D", 0, 10)
-        );
-        solveTSP(square);
+            for (int i = 0; i < numberOfPoints; i++) {
+                Point point = readPoints.get(i);
+                System.out.println((i + 1) + " " + point.getX() + " " + point.getY());
+            }
 
-        System.out.println("\nExample 2: Triangle");
-        List<City> triangle = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 5, 0),
-            new City("C", 2.5, 4.33)
-        );
-        solveTSP(triangle);
+            System.out.println("\n=== Algorytm zachłanny komiwojażera ===\n");
+            List<City> cities = convertPointsToCities(readPoints);
+            solveTSP(cities);
+        }
+    }
 
-        System.out.println("\nExample 3: Five Cities");
-        List<City> fiveCities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 3, 4),
-            new City("C", 6, 1),
-            new City("D", 7, 6),
-            new City("E", 2, 8)
-        );
-        solveTSP(fiveCities);
+    private static List<City> convertPointsToCities(List<Point> points) {
+        List<City> cities = new ArrayList<>();
+
+        for (int i = 0; i < points.size(); i++) {
+            Point point = points.get(i);
+            String cityName = "City" + (i + 1);
+            cities.add(new City(cityName, point.getX(), point.getY()));
+        }
+        return cities;
     }
 
     private static void solveTSP(List<City> cities) {
         GreedyTSPSolver solver = new GreedyTSPSolver();
         Tour tour = solver.solve(cities);
         System.out.println(tour);
-    }
+    } 
 }
