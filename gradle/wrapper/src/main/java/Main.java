@@ -14,7 +14,7 @@ public class Main {
         zapis.println(points.length);
 
         for (int i = 0; i < points.length; i++) {
-            zapis.println(points[i][0] + " " + points[i][1]);`
+            zapis.println((i+1) + " " points[i][0] + " " + points[i][1]);`
         }
 
         zapis.close();
@@ -28,7 +28,7 @@ public class Main {
 
 
             for (int i = 0; i < numberofPoints; i++) {
-                System.out.println( readPoints[i][0] + ", " + readPoints[i][1]);
+                System.out.println((i+1)+ " "+ readPoints[i][0] + " " + readPoints[i][1]);
             }
         }
 
@@ -79,10 +79,19 @@ public class Main {
 
             // Odczyt kolejnych N punktów
             for (int i = 0; i < numberOfPoints; i++) {
+
+                if (odczyt.hasNextInt()) {
+                    odczyt.nextInt(); // Ignoruj (i+1) z pliku
+                }else{
+                    System.err.println("Błąd odczytu: Brak indeksu punktu" + (i + 1));
+                    odczyt.close();
+                    return null;
+                }
+
                 if (odczyt.hasNextInt()) {
                     points[i][0] = odczyt.nextInt();
                 } else {
-                    System.err.println("Błąd odczytu: Brak danych dla współrzędnej X punktu " + i);
+                    System.err.println("Błąd odczytu: Brak danych dla współrzędnej X punktu " + (i+1));
                     odczyt.close();
                     return null;
                 }
@@ -90,7 +99,7 @@ public class Main {
                 if (odczyt.hasNextInt()) {
                     points[i][1] = odczyt.nextInt();
                 } else {
-                    System.err.println("Błąd odczytu: Brak danych dla współrzędnej Y punktu " + i);
+                    System.err.println("Błąd odczytu: Brak danych dla współrzędnej Y punktu " + (i+1));
                     odczyt.close();
                     return null;
                 }
