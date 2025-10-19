@@ -112,5 +112,40 @@ public class Main {
             System.err.println("Błąd odczytu: Nie znaleziono pliku " + FILE_NAME);
             return null;
         }
+
+        System.out.println("=== TSP Greedy Algorithm ===\n");
+
+        System.out.println("Example 1: Square");
+        List<City> square = Arrays.asList(
+            new City("A", 0, 0),
+            new City("B", 10, 0),
+            new City("C", 10, 10),
+            new City("D", 0, 10)
+        );
+        solveTSP(square);
+
+        System.out.println("\nExample 2: Triangle");
+        List<City> triangle = Arrays.asList(
+            new City("A", 0, 0),
+            new City("B", 5, 0),
+            new City("C", 2.5, 4.33)
+        );
+        solveTSP(triangle);
+
+        System.out.println("\nExample 3: Five Cities");
+        List<City> fiveCities = Arrays.asList(
+            new City("A", 0, 0),
+            new City("B", 3, 4),
+            new City("C", 6, 1),
+            new City("D", 7, 6),
+            new City("E", 2, 8)
+        );
+        solveTSP(fiveCities);
+    }
+
+    private static void solveTSP(List<City> cities) {
+        GreedyTSPSolver solver = new GreedyTSPSolver();
+        Tour tour = solver.solve(cities);
+        System.out.println(tour);
     }
 }
