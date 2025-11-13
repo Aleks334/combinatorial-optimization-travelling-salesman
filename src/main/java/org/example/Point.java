@@ -17,6 +17,15 @@ public class Point {
         return y;
     }
 
+    public double distanceTo(Point other) {
+        // Obliczenie różnic współrzędnych
+        int dx = this.x - other.x;
+        int dy = this.y - other.y;
+
+        // Zastosowanie wzoru: sqrt( (x1-x2)^2 + (y1-y2)^2 )
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
