@@ -17,7 +17,7 @@ class GreedyTSPSolverTest {
             new City("D", 0, 10)
         );
         
-        GreedyTSPSolver solver = new GreedyTSPSolver();
+        GreedyTspSolver solver = new GreedyTspSolver();
         Tour tour = solver.solve(cities);
         
         List<City> tourCities = tour.getCities();
@@ -31,10 +31,10 @@ class GreedyTSPSolverTest {
         List<City> cities = Arrays.asList(
             new City("A", 0, 0),
             new City("B", 5, 0),
-            new City("C", 2.5, 4.33)
+            new City("C", 2, 4)
         );
         
-        GreedyTSPSolver solver = new GreedyTSPSolver();
+        GreedyTspSolver solver = new GreedyTspSolver();
         Tour tour = solver.solve(cities);
         
         List<City> tourCities = tour.getCities();
@@ -52,7 +52,7 @@ class GreedyTSPSolverTest {
             new City("D", 3, 0)
         );
         
-        GreedyTSPSolver solver = new GreedyTSPSolver();
+        GreedyTspSolver solver = new GreedyTspSolver();
         Tour tour = solver.solve(cities);
         
         List<City> tourCities = tour.getCities();

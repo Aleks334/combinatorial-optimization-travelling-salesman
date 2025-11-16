@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class GreedyTSPSolver {
+public class GreedyTspSolver implements TspSolver {
 
     public Tour solve(List<City> cities) {
         if (cities == null || cities.isEmpty()) {
