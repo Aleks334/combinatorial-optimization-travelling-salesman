@@ -1,8 +1,9 @@
 package org.example;
 
+import org.example.antColony.AntColonyTspSolver;
 import org.example.tsp.City;
-import org.example.tsp.GreedyTSPSolver;
 import org.example.tsp.Tour;
+import org.example.tsp.TspSolver;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -12,17 +13,17 @@ public class Main {
     private static final String FILE_NAME = "dane.txt";
 
     public static void main(String[] args) {
-        PointGenerator generator = new PointGenerator();
+       // PointGenerator generator = new PointGenerator();
         DataFileHandler fileHandler = new DataFileHandler(FILE_NAME);
 
-        List<Point> points = generator.generate();
+      //  List<Point> points = generator.generate();
 
-        try {
-            fileHandler.writePoints(points);
-        } catch (FileNotFoundException e) {
-            System.err.println("Błąd zapisu: Nie można utworzyć pliku " + FILE_NAME);
-            return;
-        }
+//        try {
+//            fileHandler.writePoints(points);
+//        } catch (FileNotFoundException e) {
+//            System.err.println("Błąd zapisu: Nie można utworzyć pliku " + FILE_NAME);
+//            return;
+//        }
 
         List<Point> readPoints = fileHandler.readPoints();
         if (readPoints != null) {
@@ -35,9 +36,7 @@ public class Main {
                 System.out.println((i + 1) + " " + point.getX() + " " + point.getY());
             }
 
-            System.out.println("\n=== Algorytm zachłanny komiwojażera ===\n");
-            List<City> cities = convertPointsToCities(readPoints);
-            solveTSP(cities);
+            solveTsp(readPoints);
         }
     }
 
@@ -52,8 +51,11 @@ public class Main {
         return cities;
     }
 
-    private static void solveTSP(List<City> cities) {
-        GreedyTSPSolver solver = new GreedyTSPSolver();
+    private static void solveTsp(List<Point> points) {
+        List<City> cities = convertPointsToCities(points);
+
+        TspSolver solver = new AntColonyTspSolver(points);
+        //TspSolver solver = new GreedyTspSolver();
         Tour tour = solver.solve(cities);
         System.out.println(tour);
     } 
