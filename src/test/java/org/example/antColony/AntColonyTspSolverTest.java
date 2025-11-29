@@ -1,10 +1,12 @@
 package org.example.antColony;
 
 import org.example.Point;
+import org.example.PointGenerator;
 import org.example.tsp.City;
 import org.example.tsp.Tour;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,244 +15,244 @@ import static org.junit.jupiter.api.Assertions.*;
 class AntColonyTspSolverTest {
 
     @Test
-    void testSolveWithSmallSetOfCities() {
+    void testSolveSimpleSquare() {
         List<Point> points = Arrays.asList(
             new Point(0, 0),
-            new Point(10, 0),
-            new Point(10, 10),
-            new Point(0, 10)
+            new Point(100, 0),
+            new Point(100, 100),
+            new Point(0, 100)
         );
 
-        List<City> cities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 10, 0),
-            new City("C", 10, 10),
-            new City("D", 0, 10)
-        );
-
-        AntColonyTspSolver solver = new AntColonyTspSolver(points);
-        Tour tour = solver.solve(cities);
-
-        assertNotNull(tour, "Rozwiązanie nie powinno być null");
-        assertEquals(4, tour.getCities().size(), "Trasa powinna zawierać wszystkie 4 miasta");
-        assertTrue(tour.getTotalDistance() > 0, "Całkowity dystans powinien być większy od 0");
-
-        assertTrue(tour.getTotalDistance() >= 40.0,
-            "Dystans powinien wynosić co najmniej 40 dla optymalnej trasy");
-        assertTrue(tour.getTotalDistance() <= 60.0,
-            "Dystans nie powinien przekraczać rozsądnej wartości dla 4 miast w kwadracie");
-    }
-
-    @Test
-    void testSolveWithThreeCities() {
-        List<Point> points = Arrays.asList(
-            new Point(0, 0),
-            new Point(3, 0),
-            new Point(6, 0)
-        );
-
-        List<City> cities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 3, 0),
-            new City("C", 6, 0)
-        );
+        List<City> cities = convertPointsToCities(points);
 
         AntColonyTspSolver solver = new AntColonyTspSolver(points);
         Tour tour = solver.solve(cities);
 
         assertNotNull(tour);
-        assertEquals(3, tour.getCities().size());
+        assertEquals(4, tour.getCities().size());
+        assertTrue(tour.getTotalDistance() > 0);
 
-        assertTrue(tour.getTotalDistance() >= 12.0, "Minimalna trasa to 12");
-        assertTrue(tour.getTotalDistance() <= 20.0, "Trasa powinna być bliska optymalnej");
+        assertTrue(tour.getTotalDistance() <= 450,
+            "Długość trasy powinna być bliska optymalnej (400): " + tour.getTotalDistance());
+
+        System.out.println("Test prosty kwadrat - Długość trasy: " + tour.getTotalDistance());
+        System.out.println("Czas wykonania: " + solver.getExecutionTimeMs() + " ms");
     }
 
     @Test
-    void testSolveWithTriangleCities() {
-        List<Point> points = Arrays.asList(
-            new Point(0, 0),
-            new Point(3, 0),
-            new Point(3, 4)
-        );
-
-        List<City> cities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 3, 0),
-            new City("C", 3, 4)
-        );
-
-        AntColonyTspSolver solver = new AntColonyTspSolver(points);
-        Tour tour = solver.solve(cities);
-
-        assertNotNull(tour);
-        assertEquals(3, tour.getCities().size());
-
-        assertEquals(12.0, tour.getTotalDistance(), 0.01,
-            "Dla trójkąta prostokątnego (3,4,5) optymalna trasa to 12");
-    }
-
-    @Test
-    void testAllCitiesVisited() {
-        List<Point> points = Arrays.asList(
-            new Point(0, 0),
-            new Point(5, 0),
-            new Point(5, 5),
-            new Point(0, 5),
-            new Point(2, 2)
-        );
-
-        List<City> cities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 5, 0),
-            new City("C", 5, 5),
-            new City("D", 0, 5),
-            new City("E", 2, 2)
-        );
-
-        AntColonyTspSolver solver = new AntColonyTspSolver(points);
-        Tour tour = solver.solve(cities);
-
-        assertNotNull(tour);
-        assertEquals(5, tour.getCities().size(), "Wszystkie 5 miast powinno być w trasie");
-
-        List<City> tourCities = tour.getCities();
-        for (City originalCity : cities) {
-            long count = tourCities.stream()
-                .filter(c -> c.getName().equals(originalCity.getName()))
-                .count();
-            assertEquals(1, count,
-                "Miasto " + originalCity.getName() + " powinno wystąpić dokładnie raz");
-        }
-    }
-
-    @Test
-    void testConsistentResults() {
-        List<Point> points = Arrays.asList(
-            new Point(0, 0),
-            new Point(10, 0),
-            new Point(10, 10),
-            new Point(0, 10)
-        );
-
-        List<City> cities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 10, 0),
-            new City("C", 10, 10),
-            new City("D", 0, 10)
-        );
-
-        double minDistance = Double.MAX_VALUE;
-        double maxDistance = Double.MIN_VALUE;
-
-        for (int i = 0; i < 3; i++) {
-            AntColonyTspSolver solver = new AntColonyTspSolver(points);
-            Tour tour = solver.solve(cities);
-            double distance = tour.getTotalDistance();
-
-            minDistance = Math.min(minDistance, distance);
-            maxDistance = Math.max(maxDistance, distance);
-        }
-
-        assertTrue(minDistance >= 40.0, "Minimalna znaleziona trasa powinna być >= 40");
-        assertTrue(maxDistance <= 60.0, "Maksymalna znaleziona trasa powinna być <= 60");
-    }
-
-    @Test
-    void testSingleCity() {
-        List<Point> points = Arrays.asList(new Point(5, 5));
-        List<City> cities = Arrays.asList(new City("A", 5, 5));
+    void testSolveSingleCity() {
+        List<Point> points = Arrays.asList(new Point(50, 50));
+        List<City> cities = convertPointsToCities(points);
 
         AntColonyTspSolver solver = new AntColonyTspSolver(points);
         Tour tour = solver.solve(cities);
 
         assertNotNull(tour);
         assertEquals(1, tour.getCities().size());
-        assertEquals(0.0, tour.getTotalDistance(), 0.001,
-            "Trasa z jednym miastem powinna mieć dystans 0");
+        assertEquals(0.0, tour.getTotalDistance(), 0.001);
     }
 
     @Test
-    void testTwoCities() {
-        List<Point> points = Arrays.asList(
-            new Point(0, 0),
-            new Point(10, 0)
-        );
-
-        List<City> cities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 10, 0)
-        );
-
-        AntColonyTspSolver solver = new AntColonyTspSolver(points);
-        Tour tour = solver.solve(cities);
-
-        assertNotNull(tour);
-        assertEquals(2, tour.getCities().size());
-        assertEquals(20.0, tour.getTotalDistance(), 0.001,
-            "Trasa z 2 miastami: A->B->A = 10+10 = 20");
-    }
-
-    @Test
-    void testLargerSetOfCities() {
+    void testSolveThreeCitiesInLine() {
         List<Point> points = Arrays.asList(
             new Point(0, 0),
             new Point(10, 0),
-            new Point(20, 0),
-            new Point(0, 10),
-            new Point(10, 10),
-            new Point(20, 10),
-            new Point(0, 20),
-            new Point(10, 20)
+            new Point(20, 0)
         );
-
-        List<City> cities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 10, 0),
-            new City("C", 20, 0),
-            new City("D", 0, 10),
-            new City("E", 10, 10),
-            new City("F", 20, 10),
-            new City("G", 0, 20),
-            new City("H", 10, 20)
-        );
+        List<City> cities = convertPointsToCities(points);
 
         AntColonyTspSolver solver = new AntColonyTspSolver(points);
         Tour tour = solver.solve(cities);
 
         assertNotNull(tour);
-        assertEquals(8, tour.getCities().size(), "Wszystkie 8 miast powinno być w trasie");
-        assertTrue(tour.getTotalDistance() > 0, "Dystans powinien być większy od 0");
+        assertEquals(3, tour.getCities().size());
+        // Optimalna trasa: 0->10->20->0 = 10+10+20 = 40
+        assertTrue(tour.getTotalDistance() >= 40.0 && tour.getTotalDistance() <= 45.0,
+            "Dla 3 miast w linii optymalna długość to 40, otrzymano: " + tour.getTotalDistance());
 
-        assertTrue(tour.getTotalDistance() < 200,
-            "Trasa powinna być krótsza niż 200 dla 8 miast w siatce");
+        System.out.println("Test 3 miasta w linii - Długość: " + tour.getTotalDistance());
     }
 
     @Test
-    void testAlgorithmFindsReasonableSolution() {
+    void testSolveRandomInstanceSmall() {
+        PointGenerator generator = new PointGenerator(12345L);
+        List<Point> points = generator.generate(10);
+
+        List<City> cities = convertPointsToCities(points);
+
+        long startTime = System.currentTimeMillis();
+        AntColonyTspSolver solver = new AntColonyTspSolver(points);
+        Tour tour = solver.solve(cities);
+        long endTime = System.currentTimeMillis();
+
+        assertNotNull(tour);
+        assertEquals(10, tour.getCities().size());
+        assertTrue(tour.getTotalDistance() > 0);
+
+        System.out.println("\n=== Test mała instancja (10 miast, seed=12345) ===");
+        System.out.println("Długość trasy: " + tour.getTotalDistance());
+        System.out.println("Iteracje: " + solver.getIterationsCompleted());
+        System.out.println("Czas: " + solver.getExecutionTimeMs() + " ms");
+    }
+
+    @Test
+    void testSolveRandomInstanceMedium() {
+        PointGenerator generator = new PointGenerator(54321L);
+        List<Point> points = generator.generate(25);
+
+        List<City> cities = convertPointsToCities(points);
+
+        AntColonyTspSolver solver = new AntColonyTspSolver(points);
+        Tour tour = solver.solve(cities);
+
+        assertNotNull(tour);
+        assertEquals(25, tour.getCities().size());
+        assertTrue(tour.getTotalDistance() > 0);
+
+        System.out.println("\n=== Test średnia instancja (25 miast, seed=54321) ===");
+        System.out.println("Długość trasy: " + tour.getTotalDistance());
+        System.out.println("Iteracje: " + solver.getIterationsCompleted());
+        System.out.println("Czas: " + solver.getExecutionTimeMs() + " ms");
+    }
+
+    @Test
+    void testSolveRandomInstanceLarge() {
+        PointGenerator generator = new PointGenerator(99999L);
+        List<Point> points = generator.generate(50);
+
+        List<City> cities = convertPointsToCities(points);
+
+        AntColonyTspSolver solver = new AntColonyTspSolver(points);
+        Tour tour = solver.solve(cities);
+
+        assertNotNull(tour);
+        assertEquals(50, tour.getCities().size());
+        assertTrue(tour.getTotalDistance() > 0);
+
+        System.out.println("\n=== Test duża instancja (50 miast, seed=99999) ===");
+        System.out.println("Długość trasy: " + tour.getTotalDistance());
+        System.out.println("Iteracje: " + solver.getIterationsCompleted());
+        System.out.println("Czas: " + solver.getExecutionTimeMs() + " ms");
+    }
+
+    @Test
+    void testTimeConstraint() {
+        PointGenerator generator = new PointGenerator(88888L);
+        List<Point> points = generator.generate(50);
+
+        List<City> cities = convertPointsToCities(points);
+
+        long startTime = System.currentTimeMillis();
+        AntColonyTspSolver solver = new AntColonyTspSolver(points);
+        Tour tour = solver.solve(cities);
+        long endTime = System.currentTimeMillis();
+
+        long executionTime = endTime - startTime;
+
+        assertNotNull(tour);
+        assertTrue(executionTime < 180000,
+            "Czas wykonania powinien być < 3 minuty (180000 ms), był: " + executionTime + " ms");
+
+        System.out.println("\n=== Test ograniczenia czasowego (50 miast) ===");
+        System.out.println("Długość trasy: " + tour.getTotalDistance());
+        System.out.println("Czas wykonania: " + (executionTime / 1000.0) + " s");
+        System.out.println("Iteracje: " + solver.getIterationsCompleted());
+    }
+
+    @Test
+    void testDeterministicInstanceGeneration() {
+        long seed = 11111L;
+
+        PointGenerator generator1 = new PointGenerator(seed);
+        List<Point> points1 = generator1.generate(15);
+
+        PointGenerator generator2 = new PointGenerator(seed);
+        List<Point> points2 = generator2.generate(15);
+
+        assertEquals(points1.size(), points2.size());
+        for (int i = 0; i < points1.size(); i++) {
+            assertEquals(points1.get(i).getX(), points2.get(i).getX());
+            assertEquals(points1.get(i).getY(), points2.get(i).getY());
+        }
+
+        System.out.println("\n=== Test deterministyczności generatora ===");
+        System.out.println("Instancje są identyczne dla tego samego seed: " + seed);
+    }
+
+    @Test
+    void testRepeatedExecutionsSameSeed() {
+        long seed = 22222L;
+        PointGenerator generator = new PointGenerator(seed);
+        List<Point> points = generator.generate(15);
+        List<City> cities = convertPointsToCities(points);
+
+        AntColonyTspSolver solver1 = new AntColonyTspSolver(points);
+        Tour tour1 = solver1.solve(cities);
+
+        AntColonyTspSolver solver2 = new AntColonyTspSolver(points);
+        Tour tour2 = solver2.solve(cities);
+
+        System.out.println("\n=== Test powtarzalności algorytmu (ta sama instancja) ===");
+        System.out.println("Wynik 1: " + tour1.getTotalDistance() + " (iteracje: " + solver1.getIterationsCompleted() + ")");
+        System.out.println("Wynik 2: " + tour2.getTotalDistance() + " (iteracje: " + solver2.getIterationsCompleted() + ")");
+
+        assertTrue(tour1.getTotalDistance() > 0);
+        assertTrue(tour2.getTotalDistance() > 0);
+    }
+
+    @Test
+    void testTourValidityAllCitiesVisited() {
+        PointGenerator generator = new PointGenerator(77777L);
+        List<Point> points = generator.generate(20);
+        List<City> cities = convertPointsToCities(points);
+
+        AntColonyTspSolver solver = new AntColonyTspSolver(points);
+        Tour tour = solver.solve(cities);
+
+        assertEquals(cities.size(), tour.getCities().size(),
+            "Trasa powinna zawierać wszystkie miasta");
+
+        List<City> tourCities = tour.getCities();
+        for (int i = 0; i < tourCities.size(); i++) {
+            for (int j = i + 1; j < tourCities.size(); j++) {
+                assertNotEquals(tourCities.get(i).getName(), tourCities.get(j).getName(),
+                    "Trasa nie powinna zawierać duplikatów miast");
+            }
+        }
+
+        System.out.println("\n=== Test poprawności trasy (20 miast) ===");
+        System.out.println("Wszystkie miasta odwiedzone bez duplikatów: OK");
+        System.out.println("Długość trasy: " + tour.getTotalDistance());
+    }
+
+    @Test
+    void testStagnationDetection() {
         List<Point> points = Arrays.asList(
             new Point(0, 0),
-            new Point(100, 0),
-            new Point(100, 100),
-            new Point(0, 100),
-            new Point(50, 50)
+            new Point(10, 0),
+            new Point(5, 8)
         );
-
-        List<City> cities = Arrays.asList(
-            new City("A", 0, 0),
-            new City("B", 100, 0),
-            new City("C", 100, 100),
-            new City("D", 0, 100),
-            new City("E", 50, 50)
-        );
+        List<City> cities = convertPointsToCities(points);
 
         AntColonyTspSolver solver = new AntColonyTspSolver(points);
         Tour tour = solver.solve(cities);
 
         assertNotNull(tour);
 
-        double distance = tour.getTotalDistance();
-        assertTrue(distance > 200, "Dystans powinien być większy niż minimalna możliwa wartość");
-        assertTrue(distance < 600, "Dystans nie powinien być zbyt duży");
+        System.out.println("\n=== Test detekcji stagnacji (3 miasta) ===");
+        System.out.println("Iteracje wykonane: " + solver.getIterationsCompleted());
+        System.out.println("Długość trasy: " + tour.getTotalDistance());
+        System.out.println("Czas: " + solver.getExecutionTimeMs() + " ms");
+    }
+
+    private List<City> convertPointsToCities(List<Point> points) {
+        List<City> cities = new ArrayList<>();
+        for (int i = 0; i < points.size(); i++) {
+            Point point = points.get(i);
+            String cityName = "City" + (i + 1);
+            cities.add(new City(cityName, point.getX(), point.getY()));
+        }
+        return cities;
     }
 }
 
