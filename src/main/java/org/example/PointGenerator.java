@@ -12,6 +12,14 @@ public class PointGenerator {
         this(new Random(), 3000);
     }
 
+    public PointGenerator(long seed) {
+        this(new Random(seed), 3000);
+    }
+
+    public PointGenerator(long seed, int maxCoordinate) {
+        this(new Random(seed), maxCoordinate);
+    }
+
     public PointGenerator(Random random, int maxCoordinate) {
         this.random = random;
         this.maxCoordinate = maxCoordinate;

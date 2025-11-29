@@ -1,6 +1,6 @@
 # Travelling Salesman Problem
 
-Java implementation of the Traveling Salesman Problem (TSP) using greedy algorithm and metaheuristics.
+Java implementation of the Traveling Salesman Problem (TSP) using greedy algorithm and metaheuristics (ant colony).
 
 ## How to Run
 
@@ -44,25 +44,6 @@ TspSolver solver = new AntColonyTspSolver(points);
 
 // Or use Greedy Algorithm
 TspSolver solver = new GreedyTspSolver();
-```
-
-## Example Output
-
-```
-=== Rozpoczęcie Algorytmu Mrówkowego ===
-Liczba miast: 10
-Liczba mrówek: 10
-Maksymalna liczba iteracji: 100
-Parametry: α=1.0, β=2.0, ρ=0.1
-
-Iteracja 10: Najlepsza długość trasy = 245.32
-Iteracja 20: Najlepsza długość trasy = 238.17
-...
-Iteracja 100: Najlepsza długość trasy = 230.45
-
-=== Algorytm zakończony ===
-Najlepsza długość trasy: 230.45
-City1 -> City3 -> City7 -> City2 -> ... (Distance: 230.45)
 ```
 
 ## Testing
