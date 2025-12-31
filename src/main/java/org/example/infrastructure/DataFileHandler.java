@@ -1,4 +1,6 @@
-package org.example;
+package org.example.infrastructure;
+
+import org.example.domain.model.Point;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,15 +24,13 @@ public class DataFileHandler {
                 Point point = points.get(i);
                 writer.println((i + 1) + " " + point.getX() + " " + point.getY());
             }
-
-            System.out.println("Zapisano dane do pliku " + fileName + "!");
         }
     }
 
     public List<Point> readPoints() {
         try (Scanner scanner = new Scanner(new File(fileName))) {
             if (!scanner.hasNextInt()) {
-                System.err.println("Błąd odczytu: Plik nie zawiera liczby punktów w pierwszej linii.");
+                System.err.println("Read error: File does not contain the number of points in the first line.");
                 return null;
             }
 
@@ -41,20 +41,20 @@ public class DataFileHandler {
 
             for (int i = 0; i < numberOfPoints; i++) {
                 if (scanner.hasNextInt()) {
-                    scanner.nextInt(); // Ignoruj (i+1) z pliku
+                    scanner.nextInt();
                 } else {
-                    System.err.println("Błąd odczytu: Brak indeksu punktu " + (i + 1));
+                    System.err.println("Read error: Missing index for point " + (i + 1));
                     return null;
                 }
 
                 if (!scanner.hasNextInt()) {
-                    System.err.println("Błąd odczytu: Brak danych dla współrzędnej X punktu " + (i + 1));
+                    System.err.println("Read error: Missing X coordinate data for point " + (i + 1));
                     return null;
                 }
                 int x = scanner.nextInt();
 
                 if (!scanner.hasNextInt()) {
-                    System.err.println("Błąd odczytu: Brak danych dla współrzędnej Y punktu " + (i + 1));
+                    System.err.println("Read error: Missing Y coordinate data for point " + (i + 1));
                     return null;
                 }
                 int y = scanner.nextInt();
@@ -65,8 +65,9 @@ public class DataFileHandler {
             return points;
 
         } catch (FileNotFoundException e) {
-            System.err.println("Błąd odczytu: Nie znaleziono pliku " + fileName);
+            System.err.println("Read error: File not found " + fileName);
             return null;
         }
     }
 }
+

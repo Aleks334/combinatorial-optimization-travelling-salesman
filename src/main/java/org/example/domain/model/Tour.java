@@ -1,4 +1,4 @@
-package org.example.tsp;
+package org.example.domain.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +8,12 @@ public class Tour {
     private final double totalDistance;
 
     public Tour(List<City> cities) {
+        if (cities == null) {
+            throw new IllegalArgumentException("Cities list cannot be null");
+        }
+        if (cities.isEmpty()) {
+            throw new IllegalArgumentException("Cities list cannot be empty");
+        }
         this.cities = new ArrayList<>(cities);
         this.totalDistance = calculateTotalDistance();
     }

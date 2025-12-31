@@ -1,4 +1,7 @@
-package org.example.tsp;
+package org.example.domain.algorithm;
+
+import org.example.domain.model.City;
+import org.example.domain.model.Tour;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,7 +18,7 @@ public class GreedyTspSolver implements TspSolver {
         List<City> tourOrder = new ArrayList<>();
         Set<City> unvisited = new HashSet<>(cities);
         
-        City current = cities.get(0);
+        City current = cities.getFirst();
         tourOrder.add(current);
         unvisited.remove(current);
 
