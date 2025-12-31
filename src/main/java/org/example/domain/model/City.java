@@ -1,6 +1,4 @@
-package org.example.tsp;
-
-import org.example.Point;
+package org.example.domain.model;
 
 public class City extends Point {
     private final String name;
@@ -14,3 +12,4 @@ public class City extends Point {
         return name;
     }
 }
+

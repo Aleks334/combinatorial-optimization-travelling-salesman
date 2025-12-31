@@ -1,7 +1,7 @@
-package org.example.visualization;
+package org.example.ui;
 
-import org.example.tsp.City;
-import org.example.tsp.Tour;
+import org.example.domain.model.City;
+import org.example.domain.model.Tour;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -37,7 +37,7 @@ public class TspVisualizer extends JFrame {
         XYSeriesCollection dataset = createDataset(tour);
 
         JFreeChart chart = ChartFactory.createXYLineChart(
-            "Rozwiązanie TSP - Długość trasy: " + String.format("%.2f", tour.getTotalDistance()),
+            "TSP Solution - Tour length: " + String.format("%.2f", tour.getTotalDistance()),
             "X",
             "Y",
             dataset,
@@ -72,24 +72,19 @@ public class TspVisualizer extends JFrame {
     private XYSeriesCollection createDataset(Tour tour) {
         List<City> cities = tour.getCities();
 
-        XYSeries routeSeries = new XYSeries("Trasa", false);
-        XYSeries citySeries = new XYSeries("Miasta", false);
+        XYSeries routeSeries = new XYSeries("Route", false);
+        XYSeries citySeries = new XYSeries("Cities", false);
 
-        System.out.println("\n=== Wizualizacja trasy TSP - kolejność odwiedzania ===");
         for (int i = 0; i < cities.size(); i++) {
             City city = cities.get(i);
             routeSeries.add(city.getX(), city.getY());
             citySeries.add(city.getX(), city.getY());
-            System.out.printf("%d. %s (%d, %d)%n", i + 1, city.getName(), city.getX(), city.getY());
         }
 
         if (!cities.isEmpty()) {
             City firstCity = cities.get(0);
             routeSeries.add(firstCity.getX(), firstCity.getY());
-            System.out.printf("%d. %s (%d, %d) [powrót do startu]%n",
-                cities.size() + 1, firstCity.getName(), firstCity.getX(), firstCity.getY());
         }
-        System.out.println("=== Koniec sekwencji trasy ===\n");
 
         XYSeriesCollection dataset = new XYSeriesCollection();
         dataset.addSeries(routeSeries);

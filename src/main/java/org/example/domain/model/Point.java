@@ -1,4 +1,4 @@
-package org.example;
+package org.example.domain.model;
 
 public class Point {
     private final int x;
@@ -39,6 +39,7 @@ public class Point {
 
     @Override
     public String toString() {
-        return x + " " + y;
+        return "(" + x + ", " + y + ")";
     }
 }
+

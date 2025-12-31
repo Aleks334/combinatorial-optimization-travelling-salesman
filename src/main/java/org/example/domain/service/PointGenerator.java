@@ -1,4 +1,6 @@
-package org.example;
+package org.example.domain.service;
+
+import org.example.domain.model.Point;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,12 @@ public class PointGenerator {
     }
 
     public PointGenerator(Random random, int maxCoordinate) {
+        if (random == null) {
+            throw new IllegalArgumentException("Random cannot be null");
+        }
+        if (maxCoordinate <= 0) {
+            throw new IllegalArgumentException("Max coordinate must be positive");
+        }
         this.random = random;
         this.maxCoordinate = maxCoordinate;
     }
@@ -31,6 +39,10 @@ public class PointGenerator {
     }
 
     public List<Point> generate(int numberOfPoints) {
+        if (numberOfPoints <= 0) {
+            throw new IllegalArgumentException("Number of points must be positive");
+        }
+
         List<Point> points = new ArrayList<>();
 
         for (int i = 0; i < numberOfPoints; i++) {
