@@ -2,33 +2,44 @@ package org.example.application;
 
 import org.example.ui.ConsoleUI;
 import org.example.ui.Menu;
+import org.example.infrastructure.OutputSaver;
+import org.example.ui.DefaultChartCreator;
+import org.example.ui.DefaultChartDisplayer;
+import org.example.domain.model.Tour;
+
+import java.io.File;
 
 public class TspApplication implements Application {
-    private static final String FILE_NAME = "data.txt";
+    private final String FILE_NAME = "data.txt";
+    private final String OUTPUT_DIR = "outputs";
 
     private final ConsoleUI ui;
     private final DataManager dataManager;
     private final AlgorithmSelector algorithmSelector;
     private final TspRunner tspRunner;
     private final ApplicationState state;
+    private final OutputSaver outputSaver;
 
     public TspApplication() {
         this.ui = new ConsoleUI();
         this.dataManager = new DataManager(FILE_NAME, ui);
         this.algorithmSelector = new AlgorithmSelector(ui);
-        this.tspRunner = new TspRunner(ui);
+        this.tspRunner = new TspRunner(ui, new DefaultChartCreator(), new DefaultChartDisplayer());
         this.state = new ApplicationState();
+        this.outputSaver = new OutputSaver(OUTPUT_DIR, new DefaultChartCreator());
     }
 
     public TspApplication(ConsoleUI ui, DataManager dataManager,
                           AlgorithmSelector algorithmSelector,
                           TspRunner tspRunner,
-                          ApplicationState state) {
+                          ApplicationState state,
+                          OutputSaver outputSaver) {
         this.ui = ui;
         this.dataManager = dataManager;
         this.algorithmSelector = algorithmSelector;
         this.tspRunner = tspRunner;
         this.state = state;
+        this.outputSaver = outputSaver;
     }
 
     public void run() {
@@ -37,7 +48,7 @@ public class TspApplication implements Application {
 
         while (!state.shouldExit()) {
             mainMenu.display();
-            int choice = ui.getChoice("Choose option (1-6): ");
+            int choice = ui.getChoice("Choose option: ");
 
             if (choice == -1) {
                 ui.showWarning("Invalid input. Please enter a number.");
@@ -71,6 +82,8 @@ public class TspApplication implements Application {
                         this::chooseAlgorithm)
                 .addItem("Solve TSP",
                         this::solveTsp)
+                .addItem("Save outputs",
+                        this::saveOutputs)
                 .addItem("Exit",
                         this::prepareForExit)
                 .build();
@@ -98,9 +111,34 @@ public class TspApplication implements Application {
 
     private void solveTsp() {
         if (state.hasPoints()) {
-            tspRunner.solve(state.getPoints(), state.getSelectedAlgorithm());
+            Tour tour = tspRunner.solve(state.getPoints(), state.getSelectedAlgorithm());
+            state.setLastTour(tour);
+            state.setLastAlgorithmName(state.getSelectedAlgorithm().getDisplayName());
+            state.setLastSaved(false);
         } else {
             ui.showWarning("Please load or generate data first (option 1, 2 or 3)");
+        }
+    }
+
+    private void saveOutputs() {
+        if (state.getLastTour() == null) {
+            ui.showWarning("No results to save. Run an algorithm first.");
+            return;
+        }
+
+        if (state.isLastSaved()) {
+            ui.showWarning("Outputs already saved for the last run.");
+            return;
+        }
+
+        try {
+            File dir = outputSaver.createRunDirectory(state.getLastAlgorithmName());
+            outputSaver.saveChart(state.getLastTour(), dir, "chart.png");
+            outputSaver.saveLogs(ui, dir);
+            state.setLastSaved(true);
+            ui.showSuccess("Outputs saved to: " + dir.getAbsolutePath());
+        } catch (Exception e) {
+            ui.showError("Failed to save outputs: " + e.getMessage());
         }
     }
 
@@ -109,4 +147,3 @@ public class TspApplication implements Application {
         state.exit();
     }
 }
-

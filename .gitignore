@@ -41,5 +41,7 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### Custom ###
 data.txt
 /.idea
+/outputs
