@@ -1,4 +1,4 @@
-package org.example.ui;
+package org.example.ui.chart;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -13,7 +13,7 @@ public class DefaultChartDisplayer implements ChartDisplayer {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame(title);
             ChartPanel chartPanel = new ChartPanel(chart);
-            chartPanel.setPreferredSize(new Dimension(800, 600));
+            chartPanel.setPreferredSize(ChartConfig.DEFAULT_SIZE);
             frame.setContentPane(chartPanel);
             frame.pack();
             frame.setLocationRelativeTo(null);
@@ -22,3 +22,4 @@ public class DefaultChartDisplayer implements ChartDisplayer {
         });
     }
 }
+

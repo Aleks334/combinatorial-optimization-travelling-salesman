@@ -1,4 +1,6 @@
-package org.example.ui;
+package org.example.ui.console;
+
+import org.example.ui.console.exception.InvalidMenuItemChoiceException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,3 +70,4 @@ public class Menu {
         }
     }
 }
+

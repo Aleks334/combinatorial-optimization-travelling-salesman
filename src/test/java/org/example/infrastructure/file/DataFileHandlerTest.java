@@ -1,4 +1,4 @@
-package org.example.infrastructure;
+package org.example.infrastructure.file;
 
 import org.example.domain.model.Point;
 import org.junit.jupiter.api.BeforeEach;
