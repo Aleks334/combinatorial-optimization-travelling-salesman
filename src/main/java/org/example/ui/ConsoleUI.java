@@ -5,38 +5,41 @@ import java.util.Scanner;
 
 public class ConsoleUI {
     private final Scanner scanner;
+    private final StringBuilder logBuffer;
 
     public ConsoleUI() {
         this.scanner = new Scanner(System.in);
+        this.logBuffer = new StringBuilder();
     }
 
     public void displayWelcome() {
-        System.out.println("+========================================================+");
-        System.out.println("|      Travelling Salesman Problem (TSP) - Solver       |");
-        System.out.println("+========================================================+");
+        String s = "+========================================================+" + System.lineSeparator()
+                + "|      Travelling Salesman Problem (TSP) - Solver       |" + System.lineSeparator()
+                + "+========================================================+";
+        println(s);
     }
 
     public void displaySectionHeader(String title) {
-        System.out.println("\n" + "=".repeat(60));
-        System.out.println(title);
-        System.out.println("=".repeat(60));
+        println("\n" + "=".repeat(60));
+        println(title);
+        println("=".repeat(60));
     }
 
     public void displayCoordinates(int totalCount, List<String> formattedCoordinates) {
         if (formattedCoordinates == null || formattedCoordinates.isEmpty()) return;
 
-        System.out.println("\nCity Coordinates:");
+        println("\nCity Coordinates:");
         for (int i = 0; i < formattedCoordinates.size(); i++) {
-            System.out.printf("  %2d. %s%n", i + 1, formattedCoordinates.get(i));
+            printf("  %2d. %s%n", i + 1, formattedCoordinates.get(i));
         }
 
         if (totalCount > formattedCoordinates.size()) {
-            System.out.println("  ... (and " + (totalCount - formattedCoordinates.size()) + " more)");
+            println("  ... (and " + (totalCount - formattedCoordinates.size()) + " more)");
         }
     }
 
     public int getChoice(String prompt) {
-        System.out.print(prompt);
+        print(prompt);
         try {
             int choice = scanner.nextInt();
             scanner.nextLine();
@@ -60,7 +63,7 @@ public class ConsoleUI {
     }
 
     public void waitForEnter(String message) {
-        System.out.print(message);
+        print(message);
         try {
             scanner.nextLine();
         } catch (Exception ignored) {}
@@ -71,31 +74,45 @@ public class ConsoleUI {
     }
 
     public void showSuccess(String message) {
-        System.out.println("\n[OK] " + message);
+        println("[OK] " + message);
     }
 
     public void showError(String message) {
-        System.out.println("\n[ERROR] " + message);
+        println("[ERROR] " + message);
     }
 
     public void showWarning(String message) {
-        System.out.println("\n[WARNING] " + message);
+        println("[WARNING] " + message);
     }
 
     public void showInfo(String message) {
-        System.out.println("\n" + message);
+        println(message);
     }
 
     public void print(String message) {
         System.out.print(message);
+        logBuffer.append(message);
+        logBuffer.append(System.lineSeparator());
     }
 
     public void println(String message) {
         System.out.println(message);
+        logBuffer.append(message);
+        logBuffer.append(System.lineSeparator());
     }
 
     public void printf(String format, Object... args) {
-        System.out.printf(format, args);
+        String formatted = String.format(format, args);
+        System.out.print(formatted);
+        logBuffer.append(formatted);
+        logBuffer.append(System.lineSeparator());
+    }
+
+    public String getLogs() {
+        return logBuffer.toString();
+    }
+
+    public void clearLogs() {
+        logBuffer.setLength(0);
     }
 }
-
