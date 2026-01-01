@@ -1,4 +1,4 @@
-package org.example.ui;
+package org.example.ui.console;
 
 public class MenuItem {
     private final String label;

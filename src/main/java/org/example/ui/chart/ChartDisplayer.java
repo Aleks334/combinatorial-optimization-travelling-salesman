@@ -1,4 +1,4 @@
-package org.example.ui;
+package org.example.ui.chart;
 
 import org.jfree.chart.JFreeChart;
 

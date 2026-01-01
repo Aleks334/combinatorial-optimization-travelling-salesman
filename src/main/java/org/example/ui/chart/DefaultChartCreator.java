@@ -1,4 +1,4 @@
-package org.example.ui;
+package org.example.ui.chart;
 
 import org.example.domain.model.City;
 import org.example.domain.model.Tour;
@@ -10,12 +10,11 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.BasicStroke;
 import java.util.List;
 
 public class DefaultChartCreator implements ChartCreator {
-
     @Override
     public JFreeChart createChart(Tour tour) {
         XYSeriesCollection dataset = createDataset(tour);
@@ -34,13 +33,13 @@ public class DefaultChartCreator implements ChartCreator {
         XYPlot plot = chart.getXYPlot();
 
         XYLineAndShapeRenderer routeRenderer = new XYLineAndShapeRenderer();
-        routeRenderer.setSeriesPaint(0, Color.BLUE);
+        routeRenderer.setSeriesPaint(0, ChartConfig.ROUTE_COLOR);
         routeRenderer.setSeriesStroke(0, new BasicStroke(2.0f));
         routeRenderer.setSeriesShapesVisible(0, false);
         plot.setRenderer(0, routeRenderer);
 
         XYLineAndShapeRenderer cityRenderer = new XYLineAndShapeRenderer();
-        cityRenderer.setSeriesPaint(1, Color.RED);
+        cityRenderer.setSeriesPaint(1, ChartConfig.CITY_COLOR);
         cityRenderer.setSeriesShapesVisible(1, true);
         cityRenderer.setSeriesLinesVisible(1, false);
         cityRenderer.setSeriesShape(1, new java.awt.geom.Ellipse2D.Double(-5, -5, 10, 10));
@@ -76,3 +75,4 @@ public class DefaultChartCreator implements ChartCreator {
         return dataset;
     }
 }
+

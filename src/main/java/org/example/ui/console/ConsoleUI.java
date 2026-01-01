@@ -1,16 +1,25 @@
-package org.example.ui;
+package org.example.ui.console;
 
+import org.example.application.port.*;
+import org.example.ui.console.exception.InvalidInputException;
+
+import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
-public class ConsoleUI {
+public class ConsoleUI implements ConsoleInput, ConsoleOutput, MessagePresenter, LogManager {
     private final Scanner scanner;
-    private final StringBuilder logBuffer;
+    private final StringBuilder logBuffer = new StringBuilder();
+
+    public ConsoleUI(InputStream inputStream) {
+        this.scanner = new Scanner(inputStream);
+    }
 
     public ConsoleUI() {
-        this.scanner = new Scanner(System.in);
-        this.logBuffer = new StringBuilder();
+        this(System.in);
     }
+
 
     public void displayWelcome() {
         String s = "+========================================================+" + System.lineSeparator()
@@ -26,7 +35,11 @@ public class ConsoleUI {
     }
 
     public void displayCoordinates(int totalCount, List<String> formattedCoordinates) {
-        if (formattedCoordinates == null || formattedCoordinates.isEmpty()) return;
+        Objects.requireNonNull(formattedCoordinates, "Coordinates list cannot be null");
+        if (formattedCoordinates.isEmpty()) {
+            showWarning("No coordinates to display");
+            return;
+        }
 
         println("\nCity Coordinates:");
         for (int i = 0; i < formattedCoordinates.size(); i++) {
@@ -38,35 +51,45 @@ public class ConsoleUI {
         }
     }
 
-    public int getChoice(String prompt) {
+    public String getString(String prompt) throws InvalidInputException {
         print(prompt);
         try {
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-            return choice;
+            return scanner.nextLine();
         } catch (Exception e) {
-            scanner.nextLine();
-            return -1;
+            throw new InvalidInputException("enter a valid string", e);
         }
     }
 
-    public int getIntInput() {
-        try {
-            if (!scanner.hasNextLine()) {
-                return -1;
+    public String getStringUntilValid(String prompt) {
+        while (true) {
+            try {
+                return getString(prompt);
+            } catch (InvalidInputException e) {
+                showWarning("Please enter a valid String.");
             }
-            String line = scanner.nextLine();
-            return Integer.parseInt(line.trim());
-        } catch (Exception e) {
-            return -1;
         }
     }
 
-    public void waitForEnter(String message) {
-        print(message);
+    public int getIntUntilValid(String prompt) {
+        while (true) {
+            try {
+                return getInt(prompt);
+            } catch (InvalidInputException e) {
+                showWarning("Please enter a valid number.");
+            }
+        }
+    }
+
+
+    public int getInt(String prompt) throws InvalidInputException {
+        print(prompt);
         try {
+            int value = scanner.nextInt();
             scanner.nextLine();
-        } catch (Exception ignored) {}
+            return value;
+        } catch (Exception e) {
+            throw new InvalidInputException("enter a valid integer", e);
+        }
     }
 
     public void close() {
