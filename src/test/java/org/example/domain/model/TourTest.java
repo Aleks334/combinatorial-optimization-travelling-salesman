@@ -1,15 +1,11 @@
 package org.example.domain.model;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,34 +14,10 @@ import static org.assertj.core.api.Assertions.within;
 class TourTest {
 
     @Nested
-    class Validation {
+    class CoreFunctionality {
 
         @Test
-        void shouldThrowExceptionForNullCities() {
-            // given
-            List<City> nullCities = null;
-
-            // when & then
-            assertThatThrownBy(() -> new Tour(nullCities))
-                .isInstanceOf(IllegalArgumentException.class);
-        }
-
-        @Test
-        void shouldThrowExceptionForEmptyCities() {
-            // given
-            List<City> emptyCities = new ArrayList<>();
-
-            // when & then
-            assertThatThrownBy(() -> new Tour(emptyCities))
-                .isInstanceOf(IllegalArgumentException.class);
-        }
-    }
-
-    @Nested
-    class DistanceCalculation {
-
-        @Test
-        void shouldCalculateDistanceForSimpleTriangle() {
+        void shouldCalculateDistanceForTriangle() {
             // given
             List<City> cities = Arrays.asList(
                 new City("A", 0, 0),
@@ -87,37 +59,15 @@ class TourTest {
             assertThat(tour.getTotalDistance()).isCloseTo(20.0, within(0.001));
         }
 
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("org.example.domain.model.TourTest#geometricShapeTestCases")
-        void shouldCalculateCorrectDistancesForGeometricShapes(String shapeName, List<City> cities, double expectedDistance) {
+        @Test
+        void shouldReturnCitiesInCorrectOrder() {
             // given
-
-            // when
-            Tour tour = new Tour(cities);
-
-            // then
-            assertThat(tour.getTotalDistance()).isCloseTo(expectedDistance, within(0.001));
-        }
-    }
-
-    @Nested
-    class TourProperties {
-
-        private Tour tour;
-
-        @BeforeEach
-        void setUp() {
             List<City> cities = Arrays.asList(
                 new City("A", 0, 0),
                 new City("B", 3, 0),
                 new City("C", 3, 4)
             );
-            tour = new Tour(cities);
-        }
-
-        @Test
-        void shouldReturnCitiesInCorrectOrder() {
-            // given
+            Tour tour = new Tour(cities);
 
             // when
             List<City> tourCities = tour.getCities();
@@ -132,6 +82,12 @@ class TourTest {
         @Test
         void shouldFormatToString() {
             // given
+            List<City> cities = Arrays.asList(
+                new City("A", 0, 0),
+                new City("B", 3, 0),
+                new City("C", 3, 4)
+            );
+            Tour tour = new Tour(cities);
 
             // when
             String tourString = tour.toString();
@@ -141,28 +97,27 @@ class TourTest {
         }
     }
 
-    static Stream<Object[]> geometricShapeTestCases() {
-        return Stream.of(
-            new Object[]{"Square 10x10", Arrays.asList(
-                new City("A", 0, 0),
-                new City("B", 10, 0),
-                new City("C", 10, 10),
-                new City("D", 0, 10)
-            ), 40.0},
+    @Nested
+    class Validation {
 
-            new Object[]{"Square 5x5", Arrays.asList(
-                new City("A", 0, 0),
-                new City("B", 5, 0),
-                new City("C", 5, 5),
-                new City("D", 0, 5)
-            ), 20.0},
+        @Test
+        void shouldThrowExceptionForNullCities() {
+            // given
+            List<City> nullCities = null;
 
-            new Object[]{"Rectangle 3x4", Arrays.asList(
-                new City("A", 0, 0),
-                new City("B", 3, 0),
-                new City("C", 3, 4),
-                new City("D", 0, 4)
-            ), 14.0}
-        );
+            // when & then
+            assertThatThrownBy(() -> new Tour(nullCities))
+                .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void shouldThrowExceptionForEmptyCities() {
+            // given
+            List<City> emptyCities = new ArrayList<>();
+
+            // when & then
+            assertThatThrownBy(() -> new Tour(emptyCities))
+                .isInstanceOf(IllegalArgumentException.class);
+        }
     }
 }

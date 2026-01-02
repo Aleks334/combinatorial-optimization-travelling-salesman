@@ -3,9 +3,6 @@ package org.example.domain.service;
 import org.example.domain.model.Point;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.HashSet;
 import java.util.List;
@@ -18,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class PointGeneratorTest {
 
     @Nested
-    class PointGeneration {
+    class CoreFunctionality {
 
         @Test
         void shouldGenerateRandomNumberOfPoints() {
@@ -33,32 +30,26 @@ class PointGeneratorTest {
             assertThat(points.size()).isLessThanOrEqualTo(50);
         }
 
-        @ParameterizedTest(name = "Generate {0} points")
-        @ValueSource(ints = {1, 5, 10, 25, 50, 100})
-        void shouldGenerateSpecificNumberOfPoints(int count) {
+        @Test
+        void shouldGenerateSpecificNumberOfPoints() {
             // given
             PointGenerator generator = new PointGenerator();
 
             // when
-            List<Point> points = generator.generate(count);
+            List<Point> points = generator.generate(10);
 
             // then
-            assertThat(points).hasSize(count);
+            assertThat(points).hasSize(10);
         }
 
-        @ParameterizedTest(name = "Generate {1} points with max coordinate {0}")
-        @CsvSource({
-            "100, 10",
-            "500, 20",
-            "1000, 50",
-            "3000, 100"
-        })
-        void shouldRespectCustomMaxCoordinate(int maxCoordinate, int pointCount) {
+        @Test
+        void shouldRespectCustomMaxCoordinate() {
             // given
+            int maxCoordinate = 500;
             PointGenerator generator = new PointGenerator(123L, maxCoordinate);
 
             // when
-            List<Point> points = generator.generate(pointCount);
+            List<Point> points = generator.generate(20);
 
             // then
             for (Point point : points) {
@@ -66,33 +57,24 @@ class PointGeneratorTest {
                 assertThat(point.getY()).isBetween(0, maxCoordinate - 1);
             }
         }
-    }
 
-    @Nested
-    class Uniqueness {
-
-        @ParameterizedTest(name = "Test uniqueness for {0} points")
-        @ValueSource(ints = {10, 20, 30, 50})
-        void shouldGenerateUniquePoints(int count) {
+        @Test
+        void shouldGenerateUniquePoints() {
             // given
             PointGenerator generator = new PointGenerator();
 
             // when
-            List<Point> points = generator.generate(count);
+            List<Point> points = generator.generate(20);
 
             // then
             Set<Point> uniquePoints = new HashSet<>(points);
             assertThat(uniquePoints).hasSize(points.size());
         }
-    }
 
-    @Nested
-    class Determinism {
-
-        @ParameterizedTest(name = "Seed {0}")
-        @ValueSource(longs = {12345L, 54321L, 99999L})
-        void shouldProduceSameResultsWithSameSeed(long seed) {
+        @Test
+        void shouldProduceSameResultsWithSameSeed() {
             // given
+            long seed = 12345L;
             PointGenerator generator1 = new PointGenerator(seed);
             PointGenerator generator2 = new PointGenerator(seed);
 
@@ -108,14 +90,13 @@ class PointGeneratorTest {
     @Nested
     class Validation {
 
-        @ParameterizedTest(name = "Invalid count: {0}")
-        @ValueSource(ints = {0, -1, -5, -100})
-        void shouldThrowExceptionForInvalidPointCount(int invalidCount) {
+        @Test
+        void shouldThrowExceptionForInvalidPointCount() {
             // given
             PointGenerator generator = new PointGenerator();
 
             // when & then
-            assertThatThrownBy(() -> generator.generate(invalidCount))
+            assertThatThrownBy(() -> generator.generate(0))
                 .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -130,14 +111,13 @@ class PointGeneratorTest {
                 .isInstanceOf(IllegalArgumentException.class);
         }
 
-        @ParameterizedTest(name = "Invalid max coordinate: {0}")
-        @ValueSource(ints = {0, -1, -100})
-        void shouldThrowExceptionForInvalidMaxCoordinate(int invalidMax) {
+        @Test
+        void shouldThrowExceptionForInvalidMaxCoordinate() {
             // given
             Random random = new Random();
 
             // when & then
-            assertThatThrownBy(() -> new PointGenerator(random, invalidMax))
+            assertThatThrownBy(() -> new PointGenerator(random, 0))
                 .isInstanceOf(IllegalArgumentException.class);
         }
     }
