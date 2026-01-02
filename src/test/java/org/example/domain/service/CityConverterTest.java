@@ -15,10 +15,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class CityConverterTest {
 
     @Nested
-    class ValidConversions {
+    class CoreFunctionality {
 
         @Test
-        void shouldConvertPointsToCitiesWithCorrectData() {
+        void shouldConvertPointsToCities() {
             // given
             List<Point> points = Arrays.asList(
                 new Point(10, 20),
@@ -39,7 +39,7 @@ class CityConverterTest {
         }
 
         @Test
-        void shouldConvertEmptyListToEmptyCitiesList() {
+        void shouldConvertEmptyList() {
             // given
             List<Point> emptyPoints = Collections.emptyList();
 

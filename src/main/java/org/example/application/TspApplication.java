@@ -1,164 +1,189 @@
 package org.example.application;
 
-import org.example.application.port.output.OutputSaverPort;
+import org.example.application.port.in.InputPort;
+import org.example.application.port.out.OutputPort;
+import org.example.application.port.out.SolutionArchiver;
 import org.example.application.service.DataService;
-import org.example.application.service.AlgorithmService;
 import org.example.application.service.TspSolverService;
-import org.example.ui.console.ConsoleUIFacade;
-import org.example.ui.console.Menu;
-import org.example.ui.chart.DefaultChartCreator;
-import org.example.ui.chart.DefaultChartDisplayer;
-import org.example.infrastructure.output.FileOutputSaver;
-import org.example.infrastructure.file.DataFileHandler;
+import org.example.domain.algorithm.Algorithm;
+import org.example.domain.model.Point;
 import org.example.domain.model.Tour;
-import org.example.domain.service.PointGenerator;
+import org.example.ui.chart.ChartManager;
+import org.example.ui.console.Menu;
 import org.jfree.chart.JFreeChart;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TspApplication implements Application {
-    private final String FILE_NAME = "data.txt";
-    private final String OUTPUT_DIR = "outputs";
+public class TspApplication {
 
-    private final ConsoleUIFacade ui;
+    private final InputPort input;
+    private final OutputPort output;
     private final DataService dataService;
-    private final AlgorithmService algorithmService;
-    private final TspSolverService tspSolverService;
+    private final TspSolverService solverService;
+    private final SolutionArchiver archiver;
+    private final ChartManager chartManager;
 
-    private final ApplicationState state;
-    private final OutputSaverPort outputSaverPort;
-    private final DefaultChartCreator chartCreator;
+    private final SessionContext context;
 
-    public TspApplication() {
-        this.ui = new ConsoleUIFacade();
-
-        DataFileHandler fileHandler = new DataFileHandler(FILE_NAME);
-        PointGenerator generator = new PointGenerator();
-        this.dataService = new DataService(fileHandler, generator, ui.presenter());
-        this.algorithmService = new AlgorithmService(ui.output(), ui.input(), ui.presenter());
-        this.tspSolverService = new TspSolverService(ui.output(), ui.presenter(), new DefaultChartCreator(), new DefaultChartDisplayer());
-
-        this.state = new ApplicationState();
-        this.outputSaverPort = new FileOutputSaver(OUTPUT_DIR);
-        this.chartCreator = new DefaultChartCreator();
-    }
-
-    public TspApplication(ConsoleUIFacade ui, DataService dataService,
-                          AlgorithmService algorithmService,
-                          TspSolverService tspSolverService,
-                          ApplicationState state,
-                          OutputSaverPort outputSaverPort) {
-        this.ui = ui;
+    public TspApplication(InputPort input,
+                          OutputPort output,
+                          DataService dataService,
+                          TspSolverService solverService,
+                          SolutionArchiver archiver,
+                          ChartManager chartManager) {
+        this.input = input;
+        this.output = output;
         this.dataService = dataService;
-        this.algorithmService = algorithmService;
-        this.tspSolverService = tspSolverService;
-        this.state = state;
-        this.outputSaverPort = outputSaverPort;
-        this.chartCreator = new DefaultChartCreator();
+        this.solverService = solverService;
+        this.archiver = archiver;
+        this.chartManager = chartManager;
+        this.context = new SessionContext();
     }
 
     public void run() {
-        ui.presenter().displayWelcome();
-        Menu mainMenu = createMainMenu();
+        output.displayWelcome();
+        Menu menu = createMenu();
 
-        while (!state.shouldExit()) {
-            mainMenu.display();
-            int choice = ui.input().getIntUntilValid("Choose option (1-7): ");
-
-            if (choice == -1) {
-                ui.presenter().showWarning("Invalid input. Please enter a number.");
-                continue;
-            }
-
+        while (!context.shouldExit) {
+            menu.display();
+            int choice = input.getIntUntilValid("Choose option (1-7): ");
             try {
-                mainMenu.handleChoice(choice);
+                menu.handleChoice(choice);
             } catch (Exception e) {
-                ui.presenter().showWarning("Invalid choice. Please try again.");
+                output.displayError("Action failed: " + e.getMessage());
             }
         }
-
-        terminate();
-    }
-
-    public void terminate() {
-        ui.close();
         System.exit(0);
     }
 
-    private Menu createMainMenu() {
+    private Menu createMenu() {
         return Menu.builder("Main Menu")
-                .addItem("Load data from file (" + FILE_NAME + ")",
-                        this::loadDataFromFile)
-                .addItem("Generate new random data",
-                        this::generateRandomData)
-                .addItem("Generate and save data to file",
-                        this::generateAndSaveData)
-                .addItem("Choose algorithm",
-                        this::chooseAlgorithm)
-                .addItem("Solve TSP",
-                        this::solveTsp)
-                .addItem("Save outputs",
-                        this::saveOutputs)
-                .addItem("Exit",
-                        this::prepareForExit)
+                .setOutput(output)
+                .addItem("Load data from file", this::loadData)
+                .addItem("Generate random data", this::generateData)
+                .addItem("Generate and save data", this::generateAndSave)
+                .addItem("Choose algorithm", this::chooseAlgorithm)
+                .addItem("Solve TSP", this::solveTsp)
+                .addItem("Save outputs", this::saveOutputs)
+                .addItem("Exit", () -> context.shouldExit = true)
                 .build();
     }
 
-    private void loadDataFromFile() {
-        state.setPoints(dataService.loadFromFile());
+    private void loadData() {
+        try {
+            List<Point> points = dataService.loadFromFile();
+            if (points.isEmpty()) {
+                output.displayError("File is empty.");
+            } else {
+                updatePoints(points);
+                output.displaySuccess("Loaded " + points.size() + " points.");
+            }
+        } catch (Exception e) {
+            output.displayError("Load failed: " + e.getMessage());
+        }
     }
 
-    private void generateRandomData() {
-        int count = ui.input().getIntUntilValid("\nEnter number of cities to generate (or 0 for random 1-50): ");
-        state.setPoints(dataService.generate(count));
+    private void generateData() {
+        int count = input.getIntUntilValid("Enter number of cities (0 for random): ");
+        List<Point> points = dataService.generateRandom(count);
+        updatePoints(points);
+        output.displaySuccess("Generated " + points.size() + " cities.");
     }
 
-    private void generateAndSaveData() {
-        int count = ui.input().getIntUntilValid("\nEnter number of cities to generate (or 0 for random 1-50): ");
-        state.setPoints(dataService.generateAndSave(count));
+    private void generateAndSave() {
+        int count = input.getIntUntilValid("Enter number of cities (0 for random): ");
+        List<Point> points = dataService.generateRandom(count);
+        try {
+            dataService.saveToFile(points);
+            updatePoints(points);
+            output.displaySuccess("Generated and saved " + points.size() + " cities.");
+        } catch (Exception e) {
+            output.displayError("Save failed: " + e.getMessage());
+        }
     }
 
     private void chooseAlgorithm() {
-        state.setSelectedAlgorithm(algorithmService.selectAlgorithm());
+        output.displayHeader("Choose Algorithm");
+        output.println("  1. Greedy Algorithm");
+        output.println("  2. Ant Colony Optimization");
+        int choice = input.getIntUntilValid("Select (1-2): ");
+
+        context.selectedAlgorithm = (choice == 1) ? Algorithm.GREEDY : Algorithm.ANT_COLONY;
+        output.displaySuccess("Selected: " + context.selectedAlgorithm.getDisplayName());
     }
 
     private void solveTsp() {
-        if (state.hasPoints()) {
-            Tour tour = tspSolverService.solve(state.getPoints(), state.getSelectedAlgorithm());
-            state.setLastTour(tour);
-            state.setLastAlgorithmName(state.getSelectedAlgorithm().getDisplayName());
-            state.setLastSaved(false);
-        } else {
-            ui.presenter().showWarning("Please load or generate data first (option 1, 2 or 3)");
-        }
-    }
-
-    private void saveOutputs() {
-        if (state.getLastTour() == null) {
-            ui.presenter().showWarning("No results to save. Run an algorithm first.");
+        if (context.points == null || context.points.isEmpty()) {
+            output.displayError("No points loaded. Load or generate data first.");
             return;
         }
 
-        if (state.isLastSaved()) {
-            ui.presenter().showWarning("Outputs already saved for the last run.");
+        output.displayHeader("Running " + context.selectedAlgorithm.getDisplayName());
+
+        long start = System.currentTimeMillis();
+        Tour tour = solverService.solve(context.points, context.selectedAlgorithm);
+        long duration = System.currentTimeMillis() - start;
+
+        context.lastTour = tour;
+        context.lastAlgorithmName = context.selectedAlgorithm.getDisplayName();
+        context.isResultSaved = false;
+
+        output.displayHeader("Result");
+        output.println(tour.toString());
+        output.printf("Time: %.3f s%n", duration / 1000.0);
+
+        JFreeChart chart = chartManager.createChart(tour);
+        chartManager.display(chart, "TSP - " + context.lastAlgorithmName);
+    }
+
+    private void saveOutputs() {
+        if (context.lastTour == null) {
+            output.displayError("No solution to save. Run solver first.");
+            return;
+        }
+        if (context.isResultSaved) {
+            output.displayError("Already saved.");
             return;
         }
 
         try {
-            File dir = outputSaverPort.createRunDirectory(state.getLastAlgorithmName());
-            JFreeChart chart = chartCreator.createChart(state.getLastTour());
-            outputSaverPort.saveChart(chart, dir, "chart.png");
-            outputSaverPort.saveLogs(ui.logManager(), dir);
-            state.setLastSaved(true);
-            ui.presenter().showSuccess("Outputs saved to: " + dir.getAbsolutePath());
+            File dir = archiver.createRunDirectory(context.lastAlgorithmName);
+            JFreeChart chart = chartManager.createChart(context.lastTour);
+
+            archiver.saveLogs(output.getLogs(), dir);
+            archiver.saveChart(chart, dir);
+
+            context.isResultSaved = true;
+            output.displaySuccess("Saved to: " + dir.getAbsolutePath());
         } catch (Exception e) {
-            ui.presenter().showError("Failed to save outputs: " + e.getMessage());
+            output.displayError("Failed to save: " + e.getMessage());
         }
     }
 
-    private void prepareForExit() {
-        ui.presenter().showInfo("Goodbye!");
-        state.exit();
+    private void updatePoints(List<Point> points) {
+        context.points = points;
+        context.lastTour = null;
+        context.isResultSaved = false;
+
+        int limit = Math.min(points.size(), 10);
+        List<String> preview = new ArrayList<>();
+        for (int i = 0; i < limit; i++) {
+            Point p = points.get(i);
+            preview.add(String.format("(%d, %d)", p.getX(), p.getY()));
+        }
+
+        if (points.size() > limit) preview.add("... " + (points.size() - limit) + " more");
+        output.displayPoints(preview);
+    }
+
+    private static class SessionContext {
+        List<Point> points;
+        Algorithm selectedAlgorithm = Algorithm.ANT_COLONY;
+        Tour lastTour;
+        String lastAlgorithmName;
+        boolean isResultSaved;
+        boolean shouldExit = false;
     }
 }
-
